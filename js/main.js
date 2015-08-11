@@ -5,6 +5,7 @@ var playlist = "http://developer.echonest.com/api/v4/playlist/static";
 jQuery.ajaxSettings.traditional = true;
 
 var main = document.getElementsByTagName("main");
+var nextSongs = [];
 
 // Start
 getSongs(startSong);
@@ -34,6 +35,8 @@ function getSongs(s) {
       getImage(s, img);
       div.append(img);
 
+      nextSong = [];
+
       songs.map(function(song) {
         var span = document.createElement('div');
         span.innerText = song.title + " - " + song.artist_name + "  dance: " + song.audio_summary.danceability + "  eng: " + song.audio_summary.energy;
@@ -44,6 +47,15 @@ function getSongs(s) {
         };
 
         div.append(span);
+
+        nextSongs.push({
+          title: song.title,
+          artist: song.artist_name,
+          spotify_uri: song.tracks[0].foreign_id,
+          danceablility: song.audio_summary.danceability,
+          energy: song.audio_summary.energy,
+          duration: song.audio_summary.duration,
+        });
       })
 
       $('main').append(div);

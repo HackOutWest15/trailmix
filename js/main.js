@@ -12,7 +12,35 @@ var main = document.getElementsByTagName("main");
 var nextSongs = [];
 
 // Start
-getSongs(startSong);
+window.onload = function() {
+  getStartInfo();
+  getSongs(startSong);
+}
+
+window.onclick = function(e) {
+  var cW = $('body').innerWidth();
+  var cH = $('body').innerHeight();
+
+  var x = (e.pageX / cW) * 2 - 1;
+  var y = (e.pageY / cH) * 2 - 1;
+
+  var closestSong = false;
+  var dist = 2;
+
+  nextSongs.map(function(song) {
+    if (vecDistance(song, x, y) < dist) {
+      closestSong = song;
+      dist = vecDistance(song, x, y);
+    }
+
+  });
+
+  console.log(closestSong.title + " - " + closestSong.artist);
+}
+
+function vecDistance(song, x, y){
+  return Math.sqrt(Math.pow((song.x - x), 2) + Math.pow((song.y - y), 2));
+}
 
 
 function getStartInfo() {
@@ -34,7 +62,6 @@ function getStartInfo() {
     };
   });
 }
-getStartInfo();
 
 function getMax(col, prop) {
   var max = 0;
@@ -57,45 +84,40 @@ function getMin(col, prop) {
 }
 
 function plotSongs() {
-  nextSongs.map(function(song) {
-    diff = songDifference(song);
-  });
+  nextSongs.map(songDifference);
 
   globals.addPoint(0,0, 'red')
 
-  maxX = getMax(nextSongs, 'danceability');
-  minX = getMin(nextSongs, 'danceability');
-  maxY = getMax(nextSongs, 'energy');
-  minY = getMin(nextSongs, 'energy');
-  console.logMin
+  maxX = getMax(nextSongs, 'diffDanceability');
+  minX = Math.abs(getMin(nextSongs, 'diffDanceability'));
+  maxY = getMax(nextSongs, 'diffEnergy');
+  minY = Math.abs(getMin(nextSongs, 'diffEnergy'));
+  console.log(maxX);
+  console.log(minX);
+  console.log(maxY);
+  console.log(minY);
 
   nextSongs.map(function(song) {
-    diff = songDifference(song);
 
-    var x = diff[0];
-    var y = diff[1];
-    console.log("before "+x+"   "+y);
+    var x = song.diffDanceability;
+    var y = song.diffEnergy;
 
     if (x <= 0) { x /= minX } else { x /= maxX }
     if (y <= 0) { y /= minY } else { y /= maxY }
 
-    console.log("after "+x+"   "+y);
+    song.x = x;
+    song.y = y;
     globals.addPoint(x, y);
   });
 }
 
+
+
 function songDifference(song) {
-  song.diff = [
-    currentSong.danceability - song.danceability,
-    currentSong.energy - song.energy
-    ];
-  return song.diff;
+  song.diffDanceability = currentSong.danceability - song.danceability;
+  song.diffEnergy = currentSong.energy - song.energy;
 }
 
-
-function vecDistance(a, b){
-  return Math.pow((a[0]-b[0]), 2) + Math.pow((a[1] - b[1]), 2)
-}
 
 function processSongs() {
 
@@ -140,6 +162,7 @@ function getSongs(s) {
         });
       })
 
+      plotSongs();
       console.log(data);
     });
 }

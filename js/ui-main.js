@@ -46,15 +46,7 @@ function onMouseUp(event) {
   //currentNode.children['outer'].to = event.point;
 }
 
-window.onclick = function(e) {
-  var cW = $('body').innerWidth();
-  var cH = $('body').innerHeight();
 
-  var x = (e.pageX / cW) * 2 - 1;
-  var y = (e.pageY / cH) * 2 - 1;
-
-  console.log("x: " + x + "  y: " + y)
-}
 
 globals.addPoint = function addPoint(x, y, color) {
   color = color || 'black';

@@ -5,10 +5,12 @@ var startSong = "spotify:track:6WRjufZUoxjaUNKOJ6QhWp"; //Queen of Peace - Flore
 var endpoint = "http://developer.echonest.com/api/v4/artist/similar";
 var playlist = "http://developer.echonest.com/api/v4/playlist/static";
 
+jQuery.ajaxSettings.traditional = true;
+
 callEndpoint(
     playlist,
     {
-      bucket: "id:spotify",
+      bucket: ["audio_summary", "id:spotify", "tracks"],
       song_id: startSong,
       results: 15,
       adventurousness: 0.2,
@@ -19,12 +21,20 @@ callEndpoint(
 
       songs.map(function(song) {
         //main = document.body.getElementsByTagName("main");
-        console.log(song.title + " - " + song.artist_name);
+        console.log(song.title + " - " + song.artist_name + "  dance: " + song.audio_summary.danceability);
+
       })
+
+      playSong(songs[2].tracks[0].foreign_id);
       return console.log(data);
     });
 
 
+function playSong(songId) {
+  var link = document.createElement('a');
+  link.href = songId;
+  link.click();
+}
 
 function callEndpoint(endp, data, successFn) {
   data.api_key = getEchoNestApiKey();

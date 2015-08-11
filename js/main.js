@@ -10,6 +10,10 @@ var main = document.getElementsByTagName("main");
 getSongs(startSong);
 
 
+function vecDistance(a, b){
+  return Math.pow((a[0]-b[0]), 2) + Math.pow((a[1] - b[1]), 2)
+}
+
 function getSongs(s) {
   callEndpoint(
     playlist,
@@ -32,7 +36,7 @@ function getSongs(s) {
 
       songs.map(function(song) {
         var span = document.createElement('div');
-        span.innerText = song.title + " - " + song.artist_name + "  dance: " + song.audio_summary.danceability;
+        span.innerText = song.title + " - " + song.artist_name + "  dance: " + song.audio_summary.danceability + "  eng: " + song.audio_summary.energy;
 
         span.onclick = function() {
           getSongs(song.tracks[0].foreign_id);
@@ -61,6 +65,7 @@ function getImage(song, element) {
   });
 }
 
+// Play a song using spotify.
 function playSong(songId) {
   var link = document.createElement('a');
   link.href = songId;
@@ -68,6 +73,8 @@ function playSong(songId) {
   window.focus();
 }
 
+// Helper function which calls a given endpoint with my Echo Nest api key.
+// JSONP!
 function callEndpoint(endp, data, successFn) {
   data.api_key = getEchoNestApiKey();
   data.format = 'jsonp';
@@ -84,6 +91,6 @@ function callEndpoint(endp, data, successFn) {
 }
 
 function getEchoNestApiKey() {
-  return window.localStorage.getItem('echo-nest_api-key');
+  return window.echo_nest_api_key;
 }
 

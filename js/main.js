@@ -7,6 +7,7 @@ var playlist = "http://developer.echonest.com/api/v4/playlist/static";
 jQuery.ajaxSettings.traditional = true;
 
 var globals = {};
+globals.playhead = 0;
 var currentSong = {};
 var main = document.getElementsByTagName("main");
 var nextSongs = [];
@@ -87,7 +88,7 @@ function getMin(col, prop) {
 }
 
 function plotSongs() {
-  globals.clear();
+  //globals.clear();
   nextSongs.map(songDifference);
 
   globals.addPoint(0,0, 'red')
@@ -194,6 +195,10 @@ function playSong(songId) {
         element.className = "playing";
         element.src = audioURL;
         element.play();
+
+        globals.playhead = 0;
+        setInterval(function() { globals.playhead += 0.1 }, 100);
+
         element.hidden = true;
         document.body.appendChild(element);
       })();

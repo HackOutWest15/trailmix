@@ -25,19 +25,15 @@ var nodeGroup = new Group([
 ]);
 var nodeSymbol = new Symbol(nodeGroup);
 
+//var progress = new Size(30, 100);
+//var progressRect = new Path.Rectangle(new Point(0, 0), progress);
+//progressRect.fillColor = 'blue';
+//globals.rect = progressRect;
+
 //function onFrame(event) {
-  //if (nodePath.segments.length > 0){
-    //var seg = nodePath.segments[nodePath.segments.length - 1];
-    //var dv = center - seg.point;
-    //if (dv.length > 1){
-      //project.activeLayer.translate(dv.normalize()); 
-    //}
-    //else {
-      //currentNode.scale(1.001);
-    //}
-  //}
+  //progressRect.width = globals.playhead;
 //}
-//
+
 function onMouseUp(event) {
   nodePath.add(event.point);
   currentNode = nodeSymbol.place(event.point);

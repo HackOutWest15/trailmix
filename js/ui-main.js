@@ -96,3 +96,23 @@ function onMouseUp(event) {
 function onMouseMove(event){
 
 }
+
+globals.addPoint = function addPoint(x, y, color) {
+  color = color || 'black';
+
+  x *= 0.5;
+  x += 0.5;
+  x *= view.size.width;
+
+  y *= 0.5;
+  y += 0.5;
+  y *= view.size.height;
+
+  var myCircle = new Path.Circle(new Point(x, y), 5);
+  myCircle.fillColor = color;
+}
+
+globals.clear = function() {
+  project.clear();
+};
+

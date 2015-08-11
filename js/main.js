@@ -1,45 +1,17 @@
-console.log("Hi");
-
 var startSong = "spotify:track:6WRjufZUoxjaUNKOJ6QhWp"; //Queen of Peace - Florence
 
-var endpoint = "http://developer.echonest.com/api/v4/artist/similar";
 var playlist = "http://developer.echonest.com/api/v4/playlist/static";
 
 jQuery.ajaxSettings.traditional = true;
 
-
 var main = document.getElementsByTagName("main");
 
-//callEndpoint(
-    //playlist,
-    //{
-      //bucket: ["audio_summary", "id:spotify", "tracks"],
-      //song_id: startSong,
-      //results: 15,
-      //adventurousness: 0.2,
-      //type: "artist-radio",
-    //},
-    //function(data) {
-      //var songs = data.response.songs;
+// Start
+getSongs(startSong);
 
-      //var div = $("<div id=\"songs\"><div>");
-      //songs.map(function(song) {
-        //var span = document.createElement('div');
-        //span.innerText = song.title;
-        //span.onclick = function() {alert(song.artist_name);};
-        //div.append(span);
-        //console.log(song.title + " - " + song.artist_name + "  dance: " + song.audio_summary.danceability);
-
-      //})
-      
-      //$('main').append(div);
-
-      ////playSong(songs[2].tracks[0].foreign_id);
-      //return console.log(data);
-    //});
 
 function getSongs(s) {
-callEndpoint(
+  callEndpoint(
     playlist,
     {
       bucket: ["audio_summary", "id:spotify", "tracks"],
@@ -48,6 +20,7 @@ callEndpoint(
       adventurousness: 0.2,
       type: "artist-radio",
     },
+
     function(data) {
       var songs = data.response.songs;
 
@@ -67,37 +40,32 @@ callEndpoint(
         };
 
         div.append(span);
-        //console.log(song.title + " - " + song.artist_name + "  dance: " + song.audio_summary.danceability);
-
       })
 
       $('main').append(div);
 
-      //playSong(songs[2].tracks[0].foreign_id);
-      return console.log(data);
+      console.log(data);
     });
 }
 
-getSongs(startSong);
-
 function getImage(song, element) {
-  console.log(song);
-  var trackID = song.match(/track\:(.*)/)[1];
+  // Get the album art using spotify's api.
+  var trackID = song.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
   var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
   $.ajax({
     url: reqURL,
     success: function(data) {
-      console.log(data.album.images[0].url);
-      element.src = data.album.images[0].url;
+      var imgURL = data.album.images[0].url;
+      element.src = imgURL;
     },
   });
-
 }
 
 function playSong(songId) {
   var link = document.createElement('a');
   link.href = songId;
   link.click();
+  window.focus();
 }
 
 function callEndpoint(endp, data, successFn) {
@@ -115,25 +83,7 @@ function callEndpoint(endp, data, successFn) {
   });
 }
 
-// Test function
-//function callEcho(name) {
-  //$.ajax({
-    //url: endpoint,
-    //data: {
-      //api_key: getEchoNestApiKey(),
-      //name: name,
-    //},
-    //success: function(data, stat) {
-      //for(var i = 0; i < 10; i++) {
-        //console.log(data.response.artists[i].name);
-      //}
-
-    //},
-  //});
-//}
-
 function getEchoNestApiKey() {
   return window.localStorage.getItem('echo-nest_api-key');
 }
-
 

@@ -62,3 +62,7 @@ globals.addPoint = function addPoint(x, y, color) {
   var myCircle = new Path.Circle(new Point(x, y), 5);
   myCircle.fillColor = color;
 }
+
+globals.clear = function() {
+  project.clear();
+};

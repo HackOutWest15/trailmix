@@ -35,7 +35,10 @@ window.onclick = function(e) {
 
   });
 
+  playSong(closestSong.spotify_uri);
+
   console.log(closestSong.title + " - " + closestSong.artist);
+  getSongs(closestSong.spotify_uri);
 }
 
 function vecDistance(song, x, y){
@@ -84,6 +87,7 @@ function getMin(col, prop) {
 }
 
 function plotSongs() {
+  globals.clear();
   nextSongs.map(songDifference);
 
   globals.addPoint(0,0, 'red')
@@ -92,10 +96,6 @@ function plotSongs() {
   minX = Math.abs(getMin(nextSongs, 'diffDanceability'));
   maxY = getMax(nextSongs, 'diffEnergy');
   minY = Math.abs(getMin(nextSongs, 'diffEnergy'));
-  console.log(maxX);
-  console.log(minX);
-  console.log(maxY);
-  console.log(minY);
 
   nextSongs.map(function(song) {
 
@@ -163,7 +163,6 @@ function getSongs(s) {
       })
 
       plotSongs();
-      console.log(data);
     });
 }
 
@@ -182,10 +181,24 @@ function getImage(song, element) {
 
 // Play a song using spotify.
 function playSong(songId) {
-  var link = document.createElement('a');
-  link.href = songId;
-  link.click();
-  window.focus();
+  var trackID = songId.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
+  var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
+  $.ajax({
+    url: reqURL,
+    success: function(data) {
+      var audioURL = data.preview_url;
+      (function() {
+        $(".playing").remove()
+
+        var element = document.createElement("audio");
+        element.className = "playing";
+        element.src = audioURL;
+        element.play();
+        element.hidden = true;
+        document.body.appendChild(element);
+      })();
+    },
+  });
 }
 
 // Helper function which calls a given endpoint with my Echo Nest api key.

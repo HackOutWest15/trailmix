@@ -1,4 +1,6 @@
-var startSong = "spotify:track:6WRjufZUoxjaUNKOJ6QhWp"; //Queen of Peace - Florence
+var startSong = "spotify:track:6WRjufZUoxjaUNKOJ6QhWp"; // Queen of Peace - Florence
+//var startSong = "spotify:track:77jVczOFXfbdugN4djsIqs"; // Shoreline
+//var startSong = "spotify:track:2sNvitW3TxiTeC9xT9f2ZZ"; // Kygo - Firestone
 
 var playlist = "http://developer.echonest.com/api/v4/playlist/static";
 
@@ -26,7 +28,7 @@ function getStartInfo() {
         title: song.title,
         artist: song.artist_name,
         spotify_uri: startSong,
-        danceablility: song.audio_summary.danceability,
+        danceability: song.audio_summary.danceability,
         energy: song.audio_summary.energy,
         duration: song.audio_summary.duration,
     };
@@ -55,17 +57,36 @@ function getMin(col, prop) {
 }
 
 function plotSongs() {
+  nextSongs.map(function(song) {
+    diff = songDifference(song);
+  });
+
   globals.addPoint(0,0, 'red')
+
+  maxX = getMax(nextSongs, 'danceability');
+  minX = getMin(nextSongs, 'danceability');
+  maxY = getMax(nextSongs, 'energy');
+  minY = getMin(nextSongs, 'energy');
+  console.logMin
 
   nextSongs.map(function(song) {
     diff = songDifference(song);
-    globals.addPoint(diff[0],diff[1]);
+
+    var x = diff[0];
+    var y = diff[1];
+    console.log("before "+x+"   "+y);
+
+    if (x <= 0) { x /= minX } else { x /= maxX }
+    if (y <= 0) { y /= minY } else { y /= maxY }
+
+    console.log("after "+x+"   "+y);
+    globals.addPoint(x, y);
   });
 }
 
 function songDifference(song) {
   song.diff = [
-    currentSong.danceablility - song.danceablility,
+    currentSong.danceability - song.danceability,
     currentSong.energy - song.energy
     ];
   return song.diff;
@@ -79,7 +100,7 @@ function vecDistance(a, b){
 function processSongs() {
 
   nextSongs.map(function(song) {
-    globals.addPoint(song.danceablility, song.energy);
+    globals.addPoint(song.danceability, song.energy);
   });
 }
 
@@ -113,7 +134,7 @@ function getSongs(s) {
           title: song.title,
           artist: song.artist_name,
           spotify_uri: song.tracks[0].foreign_id,
-          danceablility: song.audio_summary.danceability,
+          danceability: song.audio_summary.danceability,
           energy: song.audio_summary.energy,
           duration: song.audio_summary.duration,
         });

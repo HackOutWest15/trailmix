@@ -19,13 +19,23 @@ window.onload = function() {
 }
 
 window.onclick = function(e) {
+
+  closestSong = getClosestSong(e.pageX, e.pageY);
+
+  playSong(closestSong.spotify_uri);
+
+  console.log(closestSong.title + " - " + closestSong.artist);
+  getSongs(closestSong.spotify_uri);
+}
+
+function getClosestSong(x, y) {
   var cW = $('body').innerWidth();
   var cH = $('body').innerHeight();
 
-  var x = (e.pageX / cW) * 2 - 1;
-  var y = (e.pageY / cH) * 2 - 1;
+  var x = (x / cW) * 2 - 1;
+  var y = (y / cH) * 2 - 1;
 
-  var closestSong = false;
+ var closestSong = false;
   var dist = 2;
 
   nextSongs.map(function(song) {
@@ -36,10 +46,7 @@ window.onclick = function(e) {
 
   });
 
-  playSong(closestSong.spotify_uri);
-
-  console.log(closestSong.title + " - " + closestSong.artist);
-  getSongs(closestSong.spotify_uri);
+  return closestSong;
 }
 
 function vecDistance(song, x, y){

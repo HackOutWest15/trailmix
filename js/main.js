@@ -12,7 +12,7 @@ globals.beginning = true;
 var playInfo = {
   playhead: 0,
   currentPlaying: {},
-  nextSong: {},
+  nextSong: undefined,
   relatedSongs: [],
 };
 
@@ -211,8 +211,10 @@ function startPlayback() {
         clearInterval(intervalID);
         element.pause();
 
-        playInfo.currentSong = playInfo.nextSong;
-        playInfo.nextSong = undefined;
+        if (playInfo.nextSong){
+          playInfo.currentSong = playInfo.nextSong;
+          playInfo.nextSong = undefined; 
+        }
 
         startPlayback();
 

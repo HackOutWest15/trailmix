@@ -78,10 +78,11 @@ function getStartInfo() {
     playInfo.currentSong = {
         title: song.title,
         artist: song.artist_name,
-        spotify_uri: startSong,
+        spotify_uri: [startSong],
         paramX: song.audio_summary.energy,
         paramY: song.audio_summary.tempo,
     };
+    playInfo.nextSong = playInfo.currentSong;
   });
 }
 
@@ -140,6 +141,7 @@ function getSongs(s) {
     playlist,
     {
       bucket: ["audio_summary", "id:spotify", "tracks"],
+      limit: true,
       song_id: s,
       results: 50,
       adventurousness: 0.2,
@@ -159,12 +161,17 @@ function getSongs(s) {
         }
       });
 
+      console.log(songs[0]);
+
       songs.map(function(song) {
 
         playInfo.relatedSongs.push({
           title: song.title,
           artist: song.artist_name,
-          spotify_uri: song.tracks[0].foreign_id,
+          spotify_uri: song.tracks.reduce(function(arr, elem) {
+            arr.push(elem.foreign_id);
+            return arr;
+          }, []),
           paramX: song.audio_summary.energy,
           paramY: song.audio_summary.tempo,
         });
@@ -199,44 +206,83 @@ function playSong(song) {
 
   playInfo.playhead = 0;
 
-  var songId = song.spotify_uri;
+  //console.log("len: " + song.spotify_uri.length);
+  //console.log(song.spotify_uri);
+  var songId = song.spotify_uri[0];
 
   var trackID = songId.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
   var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
+
+
+  function playURL(audioURL) {
+    $(".playing").remove()
+    if (audioURL) {
+      var element = document.createElement("audio");
+      element.className = "playing";
+      element.src = audioURL;
+      element.play();
+
+      setTimeout(function() {
+        playInfo.playhead = 0;
+        clearInterval(intervalID);
+        element.pause();
+
+        playSong(playInfo.nextSong);
+
+      }, playDuration * 1000);
+
+      intervalID = setInterval(function() {
+        playInfo.playhead += 0.1 / playDuration;
+      }, 100);
+
+      element.hidden = true;
+      document.body.appendChild(element);
+    }
+  }
+
   $.ajax({
     url: reqURL,
     success: function(data) {
       var audioURL = data.preview_url;
       console.log(audioURL);
+      playURL(audioURL);
+    },
+  });
 
-      (function() {
-        $(".playing").remove()
-        if (audioURL) {
-          var element = document.createElement("audio");
-          element.className = "playing";
-          element.src = audioURL;
-          element.play();
+  playInfo.currentSong = playInfo.nextSong;
+}
 
-          setTimeout(function() {
-            playInfo.playhead = 0;
-            clearInterval(intervalID);
-            element.pause();
-
-            playSong(playInfo.nextSong);
-
-          }, playDuration * 1000);
-
-          intervalID = setInterval(function() {
-            playInfo.playhead += 0.1 / playDuration;
-          }, 100);
-
-          element.hidden = true;
-          document.body.appendChild(element);
-        }
-      })();
+// Start of a fix for the prev_url problem.
+/*function getPrevURL(links, play) {
+  $.ajax({
+    url: buildSpotifyReqURL(links[0],
+    success: function(data) {
+      var audioURL = data.preview_url;
+      if (audioURL) {
+        set
+      }
     },
   });
 }
+
+function buildSpotifyReqURL(link) {
+  var trackID = link.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
+  var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
+  return reqURL;
+}*/
+
+//function getPrevURL(links) {
+  //links.map(function(link) {
+    //var trackID = link.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
+    //var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
+    //$.ajax({
+      //url: reqURL,
+      //success: function(data) {
+        //console.log(data.preview_url);
+      //}
+    //});
+  //});
+//}
 
 // Helper function which calls a given endpoint with my Echo Nest api key.
 // JSONP!

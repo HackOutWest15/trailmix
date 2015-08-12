@@ -3,6 +3,7 @@ var panSpeed = 20;
 var center = new Point($(document).width() / 2, $(document).height() / 2);
 
 var nodePath = new Path({
+  segments: [center],
   strokeWidth: 4,
   strokeColor: '#fff',
   strokeJoin: 'round'
@@ -21,9 +22,7 @@ globals.initUI = function() {
 }
 
 function onFrame(event) {
-
-  if (nodePath.segments.length > 0){
-    var seg = nodePath.segments[nodePath.segments.length - 1];
+  var seg = nodePath.segments[nodePath.segments.length - 1];
     var dv = center - seg.point;
     if (dv.length > panSpeed){
       project.activeLayer.translate(dv.normalize() * panSpeed);
@@ -50,7 +49,6 @@ function onFrame(event) {
       progress.arcTo(arcInfo.through, arcInfo.to);
 
     }
-  }
 }
 function getCreateArcInfo(degrees,center){
   return {

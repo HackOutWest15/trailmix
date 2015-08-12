@@ -22,13 +22,13 @@ window.onload = function() {
   getSongs(startSong);
 }
 
-window.onclick = function(e) {
+function click(e) {
   closestSong = getClosestSong(e.pageX, e.pageY);
 
   playSong(closestSong.spotify_uri);
 
   console.log(closestSong.title + " - " + closestSong.artist);
-  getSongs(closestSong.spotify_uri);
+  //getSongs(closestSong.spotify_uri);
 }
 
 function getClosestSong(x, y) {
@@ -38,7 +38,7 @@ function getClosestSong(x, y) {
   var x = (x / cW) * 2 - 1;
   var y = (y / cH) * 2 - 1;
 
- var closestSong = false;
+  var closestSong = false;
   var dist = 2;
 
   playInfo.nextSongs.map(function(song) {
@@ -70,62 +70,60 @@ function getStartInfo() {
         title: song.title,
         artist: song.artist_name,
         spotify_uri: startSong,
-        danceability: song.audio_summary.danceability,
-        energy: song.audio_summary.energy,
-        duration: song.audio_summary.duration,
+        paramX: song.audio_summary.energy,
+        paramY: song.audio_summary.tempo,
     };
   });
 }
 
+// This should be a reduce, not a map. What was I thinking?
 function getMax(col, prop) {
-  var max = 0;
+  var max = -1e9; // This is WRONG. But it works in this case.
   col.map(function(obj) {
-    if (obj[prop] > max) {
+    if (obj[prop] >= max) {
       max = obj[prop];
     }
   });
   return max;
 }
 
+// This should be a reduce, not a map. What was I thinking?
 function getMin(col, prop) {
-  var max = 1;
+  var min = 1e9; // This is WRONG. But it works in this case.
   col.map(function(obj) {
-    if (obj[prop] < max) {
-      max = obj[prop];
+    if (obj[prop] <= min) {
+      min = obj[prop];
     }
   });
-  return max;
+  return min;
 }
 
 function plotSongs() {
   playInfo.nextSongs.map(songDifference);
 
-  globals.addPoint(0,0, 'red')
-
-  maxX = getMax(playInfo.nextSongs, 'diffDanceability');
-  minX = Math.abs(getMin(playInfo.nextSongs, 'diffDanceability'));
-  maxY = getMax(playInfo.nextSongs, 'diffEnergy');
-  minY = Math.abs(getMin(playInfo.nextSongs, 'diffEnergy'));
+  maxX = getMax(playInfo.nextSongs, 'diffParamX');
+  minX = Math.abs(getMin(playInfo.nextSongs, 'diffParamX'));
+  maxY = getMax(playInfo.nextSongs, 'diffParamY');
+  minY = Math.abs(getMin(playInfo.nextSongs, 'diffParamY'));
 
   playInfo.nextSongs.map(function(song) {
 
-    var x = song.diffDanceability;
-    var y = song.diffEnergy;
+    var x = song.diffParamX;
+    var y = song.diffParamY;
 
     if (x <= 0) { x /= minX } else { x /= maxX }
     if (y <= 0) { y /= minY } else { y /= maxY }
 
-    song.x = x;
+    song.x = x * -1; // The energy axis was in the wrong direction.
     song.y = y;
-    globals.addPoint(x, y);
+    //globals.addPoint(x, y);
   });
 }
 
 
-
 function songDifference(song) {
-  song.diffDanceability = playInfo.currentSong.danceability - song.danceability;
-  song.diffEnergy = playInfo.currentSong.energy - song.energy;
+  song.diffParamX = playInfo.currentSong.paramX - song.paramX;
+  song.diffParamY = playInfo.currentSong.paramY - song.paramY;
 }
 
 
@@ -159,12 +157,12 @@ function getSongs(s) {
           title: song.title,
           artist: song.artist_name,
           spotify_uri: song.tracks[0].foreign_id,
-          danceability: song.audio_summary.danceability,
-          energy: song.audio_summary.energy,
-          duration: song.audio_summary.duration,
+          paramX: song.audio_summary.energy,
+          paramY: song.audio_summary.tempo,
         });
       })
 
+      window.onclick = click; // workaround. Only needs to be set the first time.
       plotSongs();
     });
 }
@@ -184,6 +182,11 @@ function getImage(song, element) {
 
 // Play a song using spotify.
 function playSong(songId) {
+  const playDuration = 20;
+  var intervalID;
+
+  playInfo.playhead = 0;
+
   var trackID = songId.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
   var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
   $.ajax({
@@ -195,14 +198,23 @@ function playSong(songId) {
 
         var element = document.createElement("audio");
         element.className = "playing";
-        element.src = audioURL;
-        element.play();
+        console.log(audioURL);
+        if (audioURL) {
+          element.src = audioURL;
+          element.play();
 
-        playInfo.playhead = 0;
-        setInterval(function() { playInfo.playhead += 0.1 }, 100);
+          setTimeout(function() {
+            playInfo.playhead = 0;
+            clearInterval(intervalID);
+            element.pause();
 
-        element.hidden = true;
-        document.body.appendChild(element);
+          }, playDuration * 1000);
+
+          intervalID = setInterval(function() { playInfo.playhead += 0.1 }, 100);
+
+          element.hidden = true;
+          document.body.appendChild(element);
+        }
       })();
     },
   });

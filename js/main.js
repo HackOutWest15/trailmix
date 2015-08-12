@@ -8,11 +8,12 @@ const playlist = "http://developer.echonest.com/api/v4/playlist/static";
 jQuery.ajaxSettings.traditional = true;
 
 var globals = {};
-globals.playhead = 0;
+globals.beginning = true;
 var playInfo = {
   playhead: 0,
   currentSong: {},
-  nextSongs: [],
+  nextSong: {},
+  relatedSongs: [],
 };
 
 
@@ -22,10 +23,18 @@ window.onload = function() {
   getSongs(startSong);
 }
 
+function start() {
+  window.onclick = click; // workaround.
+  playSong(playInfo.currentSong);
+}
+
 function click(e) {
+  console.log("click");
   closestSong = getClosestSong(e.pageX, e.pageY);
 
-  playSong(closestSong.spotify_uri);
+  console.log(closestSong);
+  playInfo.nextSong = closestSong;
+  //playSong(closestSong);
 
   console.log(closestSong.title + " - " + closestSong.artist);
   //getSongs(closestSong.spotify_uri);
@@ -41,7 +50,7 @@ function getClosestSong(x, y) {
   var closestSong = false;
   var dist = 2;
 
-  playInfo.nextSongs.map(function(song) {
+  playInfo.relatedSongs.map(function(song) {
     if (vecDistance(song, x, y) < dist) {
       closestSong = song;
       dist = vecDistance(song, x, y);
@@ -99,14 +108,14 @@ function getMin(col, prop) {
 }
 
 function plotSongs() {
-  playInfo.nextSongs.map(songDifference);
+  playInfo.relatedSongs.map(songDifference);
 
-  maxX = getMax(playInfo.nextSongs, 'diffParamX');
-  minX = Math.abs(getMin(playInfo.nextSongs, 'diffParamX'));
-  maxY = getMax(playInfo.nextSongs, 'diffParamY');
-  minY = Math.abs(getMin(playInfo.nextSongs, 'diffParamY'));
+  maxX = getMax(playInfo.relatedSongs, 'diffParamX');
+  minX = Math.abs(getMin(playInfo.relatedSongs, 'diffParamX'));
+  maxY = getMax(playInfo.relatedSongs, 'diffParamY');
+  minY = Math.abs(getMin(playInfo.relatedSongs, 'diffParamY'));
 
-  playInfo.nextSongs.map(function(song) {
+  playInfo.relatedSongs.map(function(song) {
 
     var x = song.diffParamX;
     var y = song.diffParamY;
@@ -116,7 +125,6 @@ function plotSongs() {
 
     song.x = x * -1; // The energy axis was in the wrong direction.
     song.y = y;
-    //globals.addPoint(x, y);
   });
 }
 
@@ -141,7 +149,7 @@ function getSongs(s) {
     function(data) {
       var songs = data.response.songs;
 
-      playInfo.nextSongs = [];
+      playInfo.relatedSongs = [];
 
       songs = songs.filter(function(song) {
         if (song.tracks.length > 0) {
@@ -153,7 +161,7 @@ function getSongs(s) {
 
       songs.map(function(song) {
 
-        playInfo.nextSongs.push({
+        playInfo.relatedSongs.push({
           title: song.title,
           artist: song.artist_name,
           spotify_uri: song.tracks[0].foreign_id,
@@ -162,8 +170,12 @@ function getSongs(s) {
         });
       })
 
-      window.onclick = click; // workaround. Only needs to be set the first time.
       plotSongs();
+      if (globals.beginning) {
+        globals.beginning = false;
+        console.log("Ready");
+        start();
+      }
     });
 }
 
@@ -181,11 +193,13 @@ function getImage(song, element) {
 }
 
 // Play a song using spotify.
-function playSong(songId) {
-  const playDuration = 20;
+function playSong(song) {
+  const playDuration = 10;
   var intervalID;
 
   playInfo.playhead = 0;
+
+  var songId = song.spotify_uri;
 
   var trackID = songId.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
   var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
@@ -193,13 +207,13 @@ function playSong(songId) {
     url: reqURL,
     success: function(data) {
       var audioURL = data.preview_url;
+      console.log(audioURL);
+
       (function() {
         $(".playing").remove()
-
-        var element = document.createElement("audio");
-        element.className = "playing";
-        console.log(audioURL);
         if (audioURL) {
+          var element = document.createElement("audio");
+          element.className = "playing";
           element.src = audioURL;
           element.play();
 
@@ -208,9 +222,13 @@ function playSong(songId) {
             clearInterval(intervalID);
             element.pause();
 
+            playSong(playInfo.nextSong);
+
           }, playDuration * 1000);
 
-          intervalID = setInterval(function() { playInfo.playhead += 0.1 }, 100);
+          intervalID = setInterval(function() {
+            playInfo.playhead += 0.1 / playDuration;
+          }, 100);
 
           element.hidden = true;
           document.body.appendChild(element);

@@ -65,7 +65,7 @@ function getStartInfo() {
     var song = data.response.track;
     playInfo.currentSong = {
         title: song.title,
-        artist: song.artist_name,
+        artist: song.artist,
         spotify_uri: [startSong],
         paramX: song.audio_summary.energy,
         paramY: song.audio_summary.tempo,
@@ -147,8 +147,6 @@ function getSongs(s) {
           return false;
         }
       });
-
-      console.log(songs[0]);
 
       songs.map(function(song) {
 

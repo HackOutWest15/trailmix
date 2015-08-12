@@ -18,6 +18,7 @@ var tooltip = new Path.Circle({
 //$('#parallax').parallax();
 
 globals.initUI = function() {
+  console.log(playInfo.currentSong.title, playInfo.currentSong.artist);
   createNode(center, playInfo.currentSong.title, playInfo.currentSong.artist);
 }
 

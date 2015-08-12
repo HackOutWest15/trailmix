@@ -2,15 +2,19 @@ var startSong = "spotify:track:6WRjufZUoxjaUNKOJ6QhWp"; // Queen of Peace - Flor
 //var startSong = "spotify:track:77jVczOFXfbdugN4djsIqs"; // Shoreline
 //var startSong = "spotify:track:2sNvitW3TxiTeC9xT9f2ZZ"; // Kygo - Firestone
 
-var playlist = "http://developer.echonest.com/api/v4/playlist/static";
+const playlist = "http://developer.echonest.com/api/v4/playlist/static";
 
+// Needed to make the api requests work.
 jQuery.ajaxSettings.traditional = true;
 
 var globals = {};
 globals.playhead = 0;
-var currentSong = {};
-var main = document.getElementsByTagName("main");
-var nextSongs = [];
+var playInfo = {
+  playhead: 0,
+  currentSong: {},
+  nextSongs: [],
+};
+
 
 // Start
 window.onload = function() {
@@ -19,7 +23,6 @@ window.onload = function() {
 }
 
 window.onclick = function(e) {
-
   closestSong = getClosestSong(e.pageX, e.pageY);
 
   playSong(closestSong.spotify_uri);
@@ -38,7 +41,7 @@ function getClosestSong(x, y) {
  var closestSong = false;
   var dist = 2;
 
-  nextSongs.map(function(song) {
+  playInfo.nextSongs.map(function(song) {
     if (vecDistance(song, x, y) < dist) {
       closestSong = song;
       dist = vecDistance(song, x, y);
@@ -63,7 +66,7 @@ function getStartInfo() {
   },
   function(data) {
     var song = data.response.track;
-    currentSong = {
+    playInfo.currentSong = {
         title: song.title,
         artist: song.artist_name,
         spotify_uri: startSong,
@@ -95,17 +98,16 @@ function getMin(col, prop) {
 }
 
 function plotSongs() {
-  //globals.clear();
-  nextSongs.map(songDifference);
+  playInfo.nextSongs.map(songDifference);
 
   globals.addPoint(0,0, 'red')
 
-  maxX = getMax(nextSongs, 'diffDanceability');
-  minX = Math.abs(getMin(nextSongs, 'diffDanceability'));
-  maxY = getMax(nextSongs, 'diffEnergy');
-  minY = Math.abs(getMin(nextSongs, 'diffEnergy'));
+  maxX = getMax(playInfo.nextSongs, 'diffDanceability');
+  minX = Math.abs(getMin(playInfo.nextSongs, 'diffDanceability'));
+  maxY = getMax(playInfo.nextSongs, 'diffEnergy');
+  minY = Math.abs(getMin(playInfo.nextSongs, 'diffEnergy'));
 
-  nextSongs.map(function(song) {
+  playInfo.nextSongs.map(function(song) {
 
     var x = song.diffDanceability;
     var y = song.diffEnergy;
@@ -122,17 +124,10 @@ function plotSongs() {
 
 
 function songDifference(song) {
-  song.diffDanceability = currentSong.danceability - song.danceability;
-  song.diffEnergy = currentSong.energy - song.energy;
+  song.diffDanceability = playInfo.currentSong.danceability - song.danceability;
+  song.diffEnergy = playInfo.currentSong.energy - song.energy;
 }
 
-
-function processSongs() {
-
-  nextSongs.map(function(song) {
-    globals.addPoint(song.danceability, song.energy);
-  });
-}
 
 function getSongs(s) {
   callEndpoint(
@@ -148,7 +143,7 @@ function getSongs(s) {
     function(data) {
       var songs = data.response.songs;
 
-      nextSongs = [];
+      playInfo.nextSongs = [];
 
       songs = songs.filter(function(song) {
         if (song.tracks.length > 0) {
@@ -160,7 +155,7 @@ function getSongs(s) {
 
       songs.map(function(song) {
 
-        nextSongs.push({
+        playInfo.nextSongs.push({
           title: song.title,
           artist: song.artist_name,
           spotify_uri: song.tracks[0].foreign_id,
@@ -203,8 +198,8 @@ function playSong(songId) {
         element.src = audioURL;
         element.play();
 
-        globals.playhead = 0;
-        setInterval(function() { globals.playhead += 0.1 }, 100);
+        playInfo.playhead = 0;
+        setInterval(function() { playInfo.playhead += 0.1 }, 100);
 
         element.hidden = true;
         document.body.appendChild(element);

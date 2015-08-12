@@ -39,10 +39,11 @@ function onFrame(event) {
       //var sine = 1 + 0.002 * Math.sin(3 * event.time);
       //currentNode.scale(sine);
 
-      var arc = currentNode.children['arc'];
-      arc.removeSegments(1);
-      var nxt = getCreateArcInfo(event.time, center);
-      arc.arcTo(nxt.through, nxt.to);
+      // Update node
+      var progress = currentNode.children['progress'];
+      progress.removeSegments(1);
+      var arcInfo = getCreateArcInfo(2 * Math.PI * playInfo.playhead, center);
+      progress.arcTo(arcInfo.through, arcInfo.to);
 
     }
   }
@@ -66,65 +67,82 @@ function getCreateArcInfo(degrees,center){
 function onMouseDown(event) {
   if (tooltip.visible && event.item == tooltip){
     tooltip.visible = false;
+    playInfo.nextSong = undefined;
     return;
   }
   tooltip.visible = true;
   tooltip.position = event.point;
+  playInfo.nextSong = 'A song at ' + event.point.toString();
+  //playInfo.nextSong = getClosestSong(event.point);
 }
 function onMouseDrag(event) {
   tooltip.position = event.point;
+  playInfo.nextSong = 'A song at ' + event.point.toString();
+  //playInfo.nextSong = getClosestSong(event.point);
 }
-
 function onMouseUp(event) {
-  return;
-
-  nodePath.add(event.point);
-  currentNode = new Group([
-    new Path.Circle({
-      center: event.point,
-      radius: nodeRadius,
-      strokeWidth: 2,
-      strokeColor: 'white'
-    }),
-    new Path({
-      name: 'arc',
-      segments: [ event.point - [0, nodeRadius] ],
-      strokeWidth: 7,
-      strokeColor: 'white'
-    }),
-    new PointText({
-      point: event.point - [0, 0.1 * nodeRadius],
-      name: 'text',
-      justification: 'center',
-      fontSize: 25,
-      fillColor: 'white',
-      content: 'Node'
-    }),
-    new PointText({
-      point: event.point + [0, 0.3 * nodeRadius],
-      name: 'text',
-      justification: 'center',
-      fontSize: 15,
-      fillColor: 'white',
-      content: 'Node'
-    })
-  ]);
-  currentNode.data = {
-    point: event.point,
-    elapsedTime: 0
-  };
-  //nodeSymbol.definition.children['text'].content = 'New node ' + i;
-  //currentNode.children[2].content = 'New node ' + i;
 }
 
 function onNextSong(){
-  console.log('NEXT SONG', playerInfo.nextSong);
+  console.log('NEXT SONG', playInfo.nextSong);
 
-  if (playerInfo.nextSong){
+  if (playInfo.nextSong){
     nodePath.add(tooltip.position);
+    createNode(tooltip.position, 'Queued song');
+    playInfo.nextSong = undefined;
   }
+  else{
+    // Reset node
+    var progress = currentNode.children['progress'];
+    progress.removeSegments(1);
+    var arcInfo = getCreateArcInfo(0, center);
+    progress.arcTo(arcInfo.through, arcInfo.to);
 
+    var songLabel = currentNode.children['song'];
+    var artistLabel = currentNode.children['artist'];
+    songLabel.content = 'Song'; // playInfo.currentSong.song;
+    artistLabel.content = 'Artist'; // playInfo.currentSong.artist;
+  }
   // Debug
   setTimeout(onNextSong, 15000)
 }
-setTimeout(onNextSong, 0)
+
+function createNode(point, text){
+  currentNode = new Group([
+      new Path.Circle({
+        center: point,
+        radius: nodeRadius,
+        strokeWidth: 2,
+        strokeColor: 'white'
+      }),
+      new Path({
+        name: 'progress',
+        segments: [ point - [0, nodeRadius] ],
+        strokeWidth: 7,
+        strokeColor: 'white'
+      }),
+      new PointText({
+        point: point - [0, 0.1 * nodeRadius],
+        name: 'song',
+        justification: 'center',
+        fontSize: 25,
+        fillColor: 'white',
+        content: text
+      }),
+      new PointText({
+        point: point + [0, 0.3 * nodeRadius],
+        name: 'artist',
+        justification: 'center',
+        fontSize: 15,
+        fillColor: 'white',
+        content: 'Init artist'
+      })
+    ]);
+    currentNode.data = {
+      point: point,
+      elapsedTime: 0
+    };
+}
+
+createNode(center, 'Init song');
+setTimeout(onNextSong, 0);

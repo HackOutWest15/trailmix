@@ -17,8 +17,8 @@ var tooltip = new Path.Circle({
 //$('#parallax').parallax();
 
 globals.initUI = function() {
-  console.log(playInfo.currentSong.title, playInfo.currentSong.artist);
-  createNode(center, playInfo.currentSong.title, playInfo.currentSong.artist);
+  console.log(playInfo.nextSong.title, playInfo.nextSong.artist);
+  createNode(center, playInfo.nextSong.title, playInfo.nextSong.artist);
 }
 
 function onFrame(event) {
@@ -78,10 +78,14 @@ function onMouseDown(event) {
   tooltip.visible = true;
   tooltip.position = event.point;
   playInfo.nextSong = getClosestSong(event.point.x, event.point.y);
+  //console.log("next:", playInfo.nextSong);
+  getPreviewURL();
 }
 function onMouseDrag(event) {
   tooltip.position = event.point;
   playInfo.nextSong = getClosestSong(event.point.x, event.point.y);
+  //console.log("next:", playInfo.nextSong);
+  getPreviewURL();
 }
 function onMouseUp(event) {
 }
@@ -100,8 +104,8 @@ globals.onSongEnd = function(){
 
     var songLabel = currentNode.children['song'];
     var artistLabel = currentNode.children['artist'];
-    songLabel.content = 'Slut.'; // playInfo.currentSong.song;
-    artistLabel.content = 'Slut.'; // playInfo.currentSong.artist;
+    songLabel.content = 'Slut.'; // playInfo.currentPlaying.song;
+    artistLabel.content = 'Slut.'; // playInfo.currentPlaying.artist;
   }
 }
 

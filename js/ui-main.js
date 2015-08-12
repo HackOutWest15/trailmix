@@ -17,7 +17,7 @@ var tooltip = new Path.Circle({
 //$('#parallax').parallax();
 
 globals.initUI = function() {
-  createNode(center, 'Init song');
+  createNode(center, playInfo.currentSong.title, playInfo.currentSong.artist);
 }
 
 function onFrame(event) {
@@ -76,24 +76,19 @@ function onMouseDown(event) {
   }
   tooltip.visible = true;
   tooltip.position = event.point;
-  playInfo.nextSong = 'A song at ' + event.point.toString();
-  //playInfo.nextSong = getClosestSong(event.point);
+  playInfo.nextSong = getClosestSong(event.point.x, event.point.y);
 }
 function onMouseDrag(event) {
   tooltip.position = event.point;
-  playInfo.nextSong = 'A song at ' + event.point.toString();
-  //playInfo.nextSong = getClosestSong(event.point);
+  playInfo.nextSong = getClosestSong(event.point.x, event.point.y);
 }
 function onMouseUp(event) {
 }
 
-globals.onSongEnd = function onNextSong(){
-  console.log('NEXT SONG', playInfo.nextSong);
-
+globals.onSongEnd = function(){
   if (playInfo.nextSong){
     nodePath.add(tooltip.position);
-    createNode(tooltip.position, 'Queued song');
-    playInfo.nextSong = undefined;
+    createNode(tooltip.position, playInfo.nextSong.title, playInfo.nextSong.artist);
   }
   else{
     // Reset node
@@ -104,12 +99,12 @@ globals.onSongEnd = function onNextSong(){
 
     var songLabel = currentNode.children['song'];
     var artistLabel = currentNode.children['artist'];
-    songLabel.content = 'Song'; // playInfo.currentSong.song;
-    artistLabel.content = 'Artist'; // playInfo.currentSong.artist;
+    songLabel.content = 'Slut.'; // playInfo.currentSong.song;
+    artistLabel.content = 'Slut.'; // playInfo.currentSong.artist;
   }
 }
 
-function createNode(point, text){
+function createNode(point, song, artist){
   currentNode = new Group([
       new Path.Circle({
         center: point,
@@ -129,7 +124,7 @@ function createNode(point, text){
         justification: 'center',
         fontSize: 25,
         fillColor: 'white',
-        content: text
+        content: song
       }),
       new PointText({
         point: point + [0, 0.3 * nodeRadius],
@@ -137,7 +132,7 @@ function createNode(point, text){
         justification: 'center',
         fontSize: 15,
         fillColor: 'white',
-        content: 'Init artist'
+        content: artist
       })
     ]);
     currentNode.data = {
@@ -145,4 +140,3 @@ function createNode(point, text){
       elapsedTime: 0
     };
 }
-

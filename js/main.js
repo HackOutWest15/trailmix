@@ -11,7 +11,7 @@ var globals = {};
 globals.beginning = true;
 var playInfo = {
   playhead: 0,
-  currentSong: {},
+  currentPlaying: {},
   nextSong: {},
   relatedSongs: [],
 };
@@ -24,20 +24,8 @@ window.onload = function() {
 }
 
 function start() {
-  window.onclick = click; // workaround.
-  playSong(playInfo.currentSong);
-}
-
-function click(e) {
-  console.log("click");
-  closestSong = getClosestSong(e.pageX, e.pageY);
-
-  console.log(closestSong);
-  playInfo.nextSong = closestSong;
-  //playSong(closestSong);
-
-  console.log(closestSong.title + " - " + closestSong.artist);
-  //getSongs(closestSong.spotify_uri);
+  globals.initUI();
+  startPlayback();
 }
 
 function getClosestSong(x, y) {
@@ -82,7 +70,6 @@ function getStartInfo() {
         paramX: song.audio_summary.energy,
         paramY: song.audio_summary.tempo,
     };
-    playInfo.nextSong = playInfo.currentSong;
   });
 }
 
@@ -200,15 +187,11 @@ function getImage(song, element) {
 }
 
 // Play a song using spotify.
-function playSong(song) {
+function startPlayback() {
   const playDuration = 10;
   var intervalID;
 
-  playInfo.playhead = 0;
-
-  //console.log("len: " + song.spotify_uri.length);
-  //console.log(song.spotify_uri);
-  var songId = song.spotify_uri[0];
+  var songId = playInfo.currentSong.spotify_uri[0];
 
   var trackID = songId.match(/track\:(.*)/)[1]; //strip the "spotify:" part.
   var reqURL = 'https://api.spotify.com/v1/tracks/' + trackID;
@@ -216,6 +199,7 @@ function playSong(song) {
 
   function playURL(audioURL) {
     $(".playing").remove()
+
     if (audioURL) {
       var element = document.createElement("audio");
       element.className = "playing";
@@ -223,11 +207,16 @@ function playSong(song) {
       element.play();
 
       setTimeout(function() {
+        globals.onSongEnd();
+
         playInfo.playhead = 0;
         clearInterval(intervalID);
         element.pause();
 
-        playSong(playInfo.nextSong);
+        playInfo.currentSong = playInfo.nextSong;
+        playInfo.nextSong = undefined;
+
+        startPlayback();
 
       }, playDuration * 1000);
 
@@ -248,8 +237,6 @@ function playSong(song) {
       playURL(audioURL);
     },
   });
-
-  playInfo.currentSong = playInfo.nextSong;
 }
 
 // Start of a fix for the prev_url problem.

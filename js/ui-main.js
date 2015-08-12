@@ -16,6 +16,10 @@ var tooltip = new Path.Circle({
 // Setup Parallax
 //$('#parallax').parallax();
 
+globals.initUI = function() {
+  createNode(center, 'Init song');
+}
+
 function onFrame(event) {
 
   if (nodePath.segments.length > 0){
@@ -83,7 +87,7 @@ function onMouseDrag(event) {
 function onMouseUp(event) {
 }
 
-function onNextSong(){
+globals.onSongEnd = function onNextSong(){
   console.log('NEXT SONG', playInfo.nextSong);
 
   if (playInfo.nextSong){
@@ -103,8 +107,6 @@ function onNextSong(){
     songLabel.content = 'Song'; // playInfo.currentSong.song;
     artistLabel.content = 'Artist'; // playInfo.currentSong.artist;
   }
-  // Debug
-  setTimeout(onNextSong, 15000)
 }
 
 function createNode(point, text){
@@ -144,5 +146,3 @@ function createNode(point, text){
     };
 }
 
-createNode(center, 'Init song');
-setTimeout(onNextSong, 0);

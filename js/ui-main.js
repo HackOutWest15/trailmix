@@ -15,13 +15,24 @@ var nodePath = new Path({
 });
 var tooltip = new Group({
   children: [
+    new Path.Circle({
+      name: 'circle',
+      center: [0, 0],
+      radius: 30,
+      strokeWidth: 2,
+      strokeColor: 'white',
+      opacity: 0.5,
+      visible: false
+    }),
     new PointText({
       name: 'label',
-      justification: 'center',
+      point: [-50, 0],
+      justification: 'right',
       fontSize: 18,
       fillColor: 'white'
     })
   ],
+  pivot: [0, 0],
   visible: false
 });
 
@@ -86,13 +97,17 @@ function onMouseDown(event) {
 function onMouseDrag(event) {
   updateTooltip(event.point);
 }
+function onMouseUp(event) {
+  tooltip.children['circle'].visible = true;
+}
 
 function updateTooltip(point){
   tooltip.position = point;
   playInfo.nextSong = getClosestSong(point.x, point.y);
   tooltip.children['label'].content = 
-    'Songs along the lines\n of ' + 
+    'Songs along the lines of\n' + 
     playInfo.nextSong.title + ' by ' + playInfo.nextSong.artist;
+  tooltip.children['circle'].visible = false;
 }
 
 globals.onSongEnd = function(){
@@ -118,19 +133,21 @@ function createNode(point, song, artist){
         center: point,
         radius: nodeRadius,
         strokeWidth: 2,
-        strokeColor: 'white'
+        strokeColor: 'white',
+        opacity: 0.5
       }),
       new Path({
         name: 'progress',
         segments: [ point - [0, nodeRadius] ],
         strokeWidth: 7,
-        strokeColor: 'white'
+        strokeColor: 'white',
+        opacity: 0.6
       }),
       new PointText({
         point: point - [0, 0.1 * nodeRadius],
         name: 'song',
         justification: 'center',
-        fontSize: 25,
+        fontSize: 16,
         fillColor: 'white',
         content: song
       }),
@@ -138,7 +155,7 @@ function createNode(point, song, artist){
         point: point + [0, 0.3 * nodeRadius],
         name: 'artist',
         justification: 'center',
-        fontSize: 15,
+        fontSize: 10,
         fillColor: 'white',
         content: artist
       })
